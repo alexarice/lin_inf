@@ -373,7 +373,7 @@ mod test {
     #[test]
     fn test_5() {
         assert_eq!(
-            run::<u32, u8>(5, true, true, Output(true)),
+            run::<u32, u8>(5, true, true, Output(true), true),
             (65, 12, vec![])
         )
     }
@@ -381,7 +381,7 @@ mod test {
     #[test]
     fn test_6() {
         assert_eq!(
-            run::<u32, u8>(6, true, true, Output(true)),
+            run::<u32, u8>(6, true, true, Output(true), true),
             (266, 84, vec![])
         )
     }
@@ -389,7 +389,7 @@ mod test {
     #[test]
     fn test_6_u64() {
         assert_eq!(
-            run::<u64, u16>(6, true, true, Output(true)),
+            run::<u64, u16>(6, true, true, Output(true), true),
             (266, 84, vec![])
         )
     }
