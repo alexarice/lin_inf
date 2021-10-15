@@ -40,6 +40,7 @@ pub trait LinGraph: Sized + Eq {
         })
     }
     fn all_p4_free(number_vars: usize) -> Vec<Self>;
+    fn all_graphs(number_vars: usize) -> Vec<Self>;
     fn neighbours(&self, number_vars: usize, x: Node) -> HashSet<Node> {
         (0..number_vars).filter(|&m| self.get(x, m)).collect()
     }
@@ -179,6 +180,9 @@ macro_rules! impl_lg {
                     }
                 }
             }
+	    fn all_graphs(n: usize) -> Vec<$x> {
+		(0..(2 as $x).pow((0..n as u32).sum())).collect()
+	    }
             fn build<T>(f: T, number_vars: usize) -> Self
             where
                 T: Fn(Node, Node) -> bool,
@@ -252,6 +256,9 @@ impl LinGraph for Vec<bool> {
                 new_graphs.filter(|x| reduced_p4(x)).collect()
             }
         }
+    }
+    fn all_graphs(n: usize) -> Vec<Self> {
+	[false,true].iter().cloned().combinations_with_replacement((0..n).sum()).collect()
     }
     fn build<T>(f: T, number_vars: usize) -> Self
     where

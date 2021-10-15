@@ -37,11 +37,11 @@ impl Output {
             println!("{}", o);
         }
     }
-    fn progress(&self, len: u64) -> ProgressBar {
+    fn progress(&self, len: usize) -> ProgressBar {
         if self.0 {
             ProgressBar::hidden()
         } else {
-            ProgressBar::new(len)
+            ProgressBar::new(len as u64)
         }
     }
 }
@@ -63,6 +63,18 @@ struct Opts {
     /// Only print result
     #[clap(short, long)]
     quiet: bool,
+    /// use switch
+    #[clap(short, long)]
+    switch: bool,
+    /// use medial
+    #[clap(short, long)]
+    medial: bool,
+    /// restrict to p4
+    #[clap(short, long)]
+    p4: bool,
+    /// from file
+    #[clap(long)]
+    from_file: Option<String>
 }
 
 fn all_max_cliques<T, U>(xs: &Vec<T>, number_vars: usize, o: &Output) -> HashMap<T, Vec<U>>
@@ -71,7 +83,7 @@ where
     U: NumericMClique,
 {
     xs.par_iter()
-        .progress_with(o.progress(xs.len() as u64))
+        .progress_with(o.progress(xs.len()))
         .map(|&x| (x, x.max_cliques(number_vars)))
         .collect()
 }
@@ -103,26 +115,25 @@ fn retrieve_graph<U, D: Serialize + DeserializeOwned>(
 where
     U: FnOnce() -> D,
 {
-    match (check, fs::read_to_string(filename)) {
-        (false, Ok(b)) => {
-            o.out(&format!("Reading file '{}'", filename));
-            serde_json::from_str(&b).unwrap()
-        }
-        _ => {
-            if check {
-                o.out(&format!("Building {} now...", filename))
-            } else {
-                o.out(&format!(
-                    "Could not read file '{}', building now...",
-                    filename
-                ));
+    if let (false, Ok(b)) = (check, fs::read_to_string(filename)) {
+        o.out(&format!("Reading file '{}'", filename));
+        serde_json::from_str(&b).unwrap()
+    } else {
+        {
+                if check {
+                    o.out(&format!("Building {} now...", filename))
+                } else {
+                    o.out(&format!(
+                        "Could not read file '{}', building now...",
+                        filename
+                    ));
+                }
+                let b = builder();
+                if !no_write {
+                    fs::write(filename, serde_json::to_string(&b).unwrap()).unwrap();
+                }
+                b
             }
-            let b = builder();
-            if !no_write {
-                fs::write(filename, serde_json::to_string(&b).unwrap()).unwrap();
-            }
-            b
-        }
     }
 }
 
@@ -138,7 +149,7 @@ where
 {
     least_p4
         .par_iter()
-        .progress_with(o.progress(least_p4.len() as u64))
+        .progress_with(o.progress(least_p4.len()))
         .map(|a| (*a, build_non_trivial_edges_from(&xs[a], &xs, number_vars)))
         .collect()
 }
@@ -175,7 +186,7 @@ where
     p4.sort();
     let mut map: HashMap<T, (T, Permutation)> = HashMap::new();
     let perm_vec = Permutation::get_all(number_vars).collect::<Vec<_>>();
-    let bar = o.progress(p4.len() as u64);
+    let bar = o.progress(p4.len());
     for l in p4 {
         map.insert(l, (l, Permutation::id(number_vars)));
         for perm in perm_vec.iter() {
@@ -192,13 +203,13 @@ where
     map
 }
 
-fn run_choose_size(number_vars: usize, check: bool, no_write: bool, o: Output) {
+fn run_choose_size(number_vars: usize, check: bool, no_write: bool, o: Output, p4 : bool) {
     if number_vars < 9 {
-        run::<u32, u8>(number_vars, check, no_write, o);
+        run::<u32, u8>(number_vars, check, no_write, o, p4);
     } else if number_vars < 12 {
-        run::<u64, u16>(number_vars, check, no_write, o);
+        run::<u64, u16>(number_vars, check, no_write, o, p4);
     } else {
-        run::<u128, u16>(number_vars, check, no_write, o);
+        run::<u128, u16>(number_vars, check, no_write, o, p4);
     }
 }
 
@@ -207,44 +218,47 @@ fn run<T, U>(
     check: bool,
     no_write: bool,
     o: Output,
+    p4: bool,
 ) -> (usize, usize, Vec<(T, T)>)
 where
     T: NumericGraph,
     U: NumericMClique,
 {
-    let mut all_p4 = retrieve_graph(
-        &format!("graphs/p4_free_{}.json", number_vars),
-        || T::all_p4_free(number_vars),
-        check,
-        no_write,
-        &o,
-    );
-    all_p4.sort();
-    let graphs = all_p4.len() as u64;
+    let graphs = if p4 {
+     	let mut all_p4 = retrieve_graph(
+	    &format!("graphs/p4_free_{}.json", number_vars),
+            || T::all_p4_free(number_vars),
+            check,
+            no_write,
+            &o,
+	);
+	all_p4.sort();
+	all_p4
+    } else {
+	T::all_graphs(number_vars)
+    };
 
-    o.out(&format!("Number of p4 free graphs: {}", graphs));
+    o.out(&format!("Number of p4 free graphs: {}", graphs.len()));
 
     let least_map: HashMap<T, (T, Permutation)> = retrieve_graph(
         &format!("graphs/least_map_{}.json", number_vars),
-        || build_least_map(all_p4.clone(), number_vars, &o),
+        || build_least_map(graphs.clone(), number_vars, &o),
         check,
         no_write,
         &o,
     );
 
-    let least_p4: Vec<T> = all_p4
+    let least_graphs: Vec<T> = graphs
         .iter()
         .cloned()
         .filter(|x| least_map.get(x).unwrap().0 == *x)
         .collect();
 
-    let least_graphs = least_p4.len() as u64;
-
-    o.out(&format!("Number of least p4 free graphs: {}", least_graphs));
+    o.out(&format!("Number of least p4 free graphs: {}", least_graphs.len()));
 
     let mc = retrieve_graph(
         &format!("graphs/max_cliques_{}.json", number_vars),
-        || all_max_cliques::<T, U>(&all_p4, number_vars, &o),
+        || all_max_cliques::<T, U>(&graphs, number_vars, &o),
         check,
         no_write,
         &o,
@@ -255,9 +269,9 @@ where
         mc.iter().map(|(_, y)| y.len()).sum::<usize>()
     ));
 
-    let graph = retrieve_graph(
+    let inf_graph = retrieve_graph(
         &format!("graphs/inf_graph_least_{}.json", number_vars),
-        || build_graph(&mc, &least_p4, number_vars, &o),
+        || build_graph(&mc, &least_graphs, number_vars, &o),
         check,
         no_write,
         &o,
@@ -265,16 +279,16 @@ where
 
     o.out(&format!(
         "Number of non-trivial-inferences: {}",
-        graph.iter().map(|(_, v)| v.len()).sum::<usize>()
+        inf_graph.iter().map(|(_, v)| v.len()).sum::<usize>()
     ));
 
     let min_graph: InfGraph<T> = retrieve_graph(
         &format!("graphs/min_inf_graph_{}.json", number_vars),
         || {
-            least_p4
+            least_graphs
                 .par_iter()
-                .progress_with(o.progress(least_graphs))
-                .map(|&k| (k, get_minimal(&graph, k, &least_map)))
+                .progress_with(o.progress(least_graphs.len()))
+                .map(|&k| (k, get_minimal(&inf_graph, k, &least_map)))
                 .collect()
         },
         check,
@@ -288,7 +302,7 @@ where
 
     let (switches, medials, mut others) = min_graph
         .par_iter()
-        .progress_with(o.progress(least_graphs))
+        .progress_with(o.progress(least_graphs.len()))
         .map(|(k, set)| {
             let mut s: usize = 0;
             let mut m: usize = 0;
@@ -316,10 +330,10 @@ where
     for (k, x) in others.iter() {
         o.out(&format!("----"));
         o.out(&format!("{}", k));
-        o.out(&format!("{}", k.cograph_decomp(number_vars)));
+        if p4 {o.out(&format!("{}", k.cograph_decomp(number_vars)))};
         o.out(&format!("",));
         o.out(&format!("{}", x));
-        o.out(&format!("{}", x.cograph_decomp(number_vars)));
+        if p4 {o.out(&format!("{}", x.cograph_decomp(number_vars)))};
         o.out(&format!(""));
     }
     println!(
@@ -338,13 +352,17 @@ fn main() {
         check,
         no_write,
         quiet,
+	switch,
+	medial,
+	p4,
+	from_file
     } = Opts::parse();
     if all {
         for x in 0..=number_vars {
-            run_choose_size(x, check, no_write, Output(quiet));
+            run_choose_size(x, check, no_write, Output(quiet), p4);
         }
     } else {
-        run_choose_size(number_vars, check, no_write, Output(quiet));
+        run_choose_size(number_vars, check, no_write, Output(quiet), p4);
     }
 }
 
