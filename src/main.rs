@@ -2,6 +2,7 @@ use clap::Clap;
 use indicatif::{ParallelProgressIterator, ProgressBar};
 use rayon::prelude::*;
 use serde::de::DeserializeOwned;
+use serde::Deserialize;
 use serde::Serialize;
 use serde_json;
 use std::collections::HashMap;
@@ -44,6 +45,16 @@ impl Output {
             ProgressBar::new(len as u64)
         }
     }
+}
+
+#[derive(Debug, Deserialize)]
+struct Rewrite {
+    name: String,
+    size: usize,
+    #[serde(rename="input")]
+    input_graph: u128,
+    #[serde(rename="output")]
+    output_graph: u128
 }
 
 #[derive(Clap)]
@@ -345,6 +356,22 @@ where
     (switches, medials, others)
 }
 
+fn parse_rewrites(filename: Option<String>, switch : bool, medial: bool){
+    match filename {
+	Some(file) => {
+	    println!("File: {}", file);
+	    let mut input = csv::ReaderBuilder::new().has_headers(false).from_path(file).unwrap();
+	    for result in input.deserialize() {
+		let record: Rewrite = result.unwrap();
+		println!("{:?}", record);
+	    }
+	    println!("Finished");
+	}
+	None => println!("no")
+    }
+}
+
+
 fn main() {
     let Opts {
         number_vars,
@@ -357,13 +384,14 @@ fn main() {
 	p4,
 	from_file
     } = Opts::parse();
-    if all {
-        for x in 0..=number_vars {
-            run_choose_size(x, check, no_write, Output(quiet), p4);
-        }
-    } else {
-        run_choose_size(number_vars, check, no_write, Output(quiet), p4);
-    }
+    parse_rewrites(from_file,switch,medial);
+    // if all {
+    //     for x in 0..=number_vars {
+    //         run_choose_size(x, check, no_write, Output(quiet), p4);
+    //     }
+    // } else {
+    //     run_choose_size(number_vars, check, no_write, Output(quiet), p4);
+    // }
 }
 
 #[cfg(test)]
