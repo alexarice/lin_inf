@@ -11,10 +11,12 @@ use std::fmt::Display;
 use std::format;
 use std::fs;
 use std::hash::Hash;
+use itertools::Itertools;
 
 use lin_inf::lin_graph::*;
 use lin_inf::mclique::*;
 use lin_inf::permutation::Permutation;
+use lin_inf::formula::Var;
 
 trait NumericGraph:
     LinGraph + Ord + Hash + Send + Sync + Clone + Copy + Display + Serialize + DeserializeOwned
@@ -214,13 +216,13 @@ where
     map
 }
 
-fn run_choose_size(number_vars: usize, check: bool, no_write: bool, o: Output, p4 : bool) {
+fn run_choose_size(number_vars: usize, check: bool, no_write: bool, o: Output, p4 : bool, rewrites : &Vec<Rewrite>) {
     if number_vars < 9 {
-        run::<u32, u8>(number_vars, check, no_write, o, p4);
+        run::<u32, u8>(number_vars, check, no_write, o, p4, &rewrites);
     } else if number_vars < 12 {
-        run::<u64, u16>(number_vars, check, no_write, o, p4);
+        run::<u64, u16>(number_vars, check, no_write, o, p4, &rewrites);
     } else {
-        run::<u128, u16>(number_vars, check, no_write, o, p4);
+        run::<u128, u16>(number_vars, check, no_write, o, p4, &rewrites);
     }
 }
 
@@ -230,7 +232,8 @@ fn run<T, U>(
     no_write: bool,
     o: Output,
     p4: bool,
-) -> (usize, usize, Vec<(T, T)>)
+    rewrites : &Vec<Rewrite>
+) -> (Vec<usize>, Vec<(T, T)>)
 where
     T: NumericGraph,
     U: NumericMClique,
@@ -248,11 +251,12 @@ where
     } else {
 	T::all_graphs(number_vars)
     };
-
-    o.out(&format!("Number of p4 free graphs: {}", graphs.len()));
+    let p4str = if p4 { " p4 free" } else { "" };
+    let p4fstr = if p4 { "_p4" } else { "" };
+    o.out(&format!("Number of{} graphs: {}", p4str, graphs.len()));
 
     let least_map: HashMap<T, (T, Permutation)> = retrieve_graph(
-        &format!("graphs/least_map_{}.json", number_vars),
+        &format!("graphs/least_map{}_{}.json", p4fstr, number_vars),
         || build_least_map(graphs.clone(), number_vars, &o),
         check,
         no_write,
@@ -265,10 +269,10 @@ where
         .filter(|x| least_map.get(x).unwrap().0 == *x)
         .collect();
 
-    o.out(&format!("Number of least p4 free graphs: {}", least_graphs.len()));
+    o.out(&format!("Number of least{} graphs: {}", p4str, least_graphs.len()));
 
     let mc = retrieve_graph(
-        &format!("graphs/max_cliques_{}.json", number_vars),
+        &format!("graphs/max_cliques{}_{}.json", p4fstr, number_vars),
         || all_max_cliques::<T, U>(&graphs, number_vars, &o),
         check,
         no_write,
@@ -281,7 +285,7 @@ where
     ));
 
     let inf_graph = retrieve_graph(
-        &format!("graphs/inf_graph_least_{}.json", number_vars),
+        &format!("graphs/inf_graph_least{}_{}.json", p4fstr, number_vars),
         || build_graph(&mc, &least_graphs, number_vars, &o),
         check,
         no_write,
@@ -294,7 +298,7 @@ where
     ));
 
     let min_graph: InfGraph<T> = retrieve_graph(
-        &format!("graphs/min_inf_graph_{}.json", number_vars),
+        &format!("graphs/min_inf_graph{}_{}.json", p4fstr, number_vars),
         || {
             least_graphs
                 .par_iter()
@@ -311,29 +315,29 @@ where
     o.out(&format!("Number of minimal inferences: {}", min_infs));
     o.out(&format!("Checking inferences..."));
 
-    let (switches, medials, mut others) = min_graph
+
+    let (classified, mut others) = min_graph
         .par_iter()
         .progress_with(o.progress(least_graphs.len()))
         .map(|(k, set)| {
-            let mut s: usize = 0;
-            let mut m: usize = 0;
-            let mut o: Vec<(T, T)> = vec![];
-            for x in set.into_iter() {
-                if is_switch(k, x, number_vars) {
-                    s += 1
-                } else if is_medial_star(k, x, number_vars) {
-                    m += 1
-                } else {
-                    o.push((*k, *x));
-                }
-            }
-            (s, m, o)
+	    let mut v : Vec<usize> = (0..rewrites.len()).map(|_| 0).collect();
+	    let mut o: Vec<(T, T)> = vec![];
+	    for x in set.into_iter() {
+		match (0..rewrites.len()).find(|i|{
+		    let Rewrite { name: _, size, input_graph, output_graph } = &rewrites[*i];
+		    is_rewrite(k, x, input_graph, output_graph, number_vars, *size)
+		}) {
+		    Some(i) => {v[i] += 1}
+		    None => {o.push((*k, *x))}
+		}
+	    }
+	    (v,o)
         })
-        .reduce_with(|(a, b, mut c), (x, y, mut z)| {
+        .reduce_with(|(v1, mut c), (v2, mut z)| {
             c.append(&mut z);
-            (a + x, b + y, c)
+            (v1.iter().zip(v2).map(|(a,b)| a + b).collect(), c)
         })
-        .unwrap_or((0, 0, vec![]));
+        .unwrap_or(((0..rewrites.len()).map(|_| 0).collect(), vec![]));
 
     others.sort();
     let others_len = others.len();
@@ -348,27 +352,46 @@ where
         o.out(&format!(""));
     }
     println!(
-        "There were {} switches, {} medials, and {} other inferences",
-        switches,
-        medials,
+        "There were {} and {} other inferences",
+        classified.iter().enumerate().map(|(n,num)| {
+	    format!("{} {},", num, rewrites[n].name)
+	}).join(" "),
         others_len
     );
-    (switches, medials, others)
+    (classified, others)
 }
 
-fn parse_rewrites(filename: Option<String>, switch : bool, medial: bool){
-    match filename {
-	Some(file) => {
-	    println!("File: {}", file);
-	    let mut input = csv::ReaderBuilder::new().has_headers(false).from_path(file).unwrap();
-	    for result in input.deserialize() {
-		let record: Rewrite = result.unwrap();
-		println!("{:?}", record);
-	    }
-	    println!("Finished");
+fn parse_rewrites(filename: Option<String>, switch : bool, medial: bool) -> Vec<Rewrite> {
+    let mut rewrites : Vec<Rewrite> = vec![];
+
+    if let Some(file) = filename {
+	println!("File: {}", file);
+	let mut input = csv::ReaderBuilder::new().has_headers(false).from_path(file).unwrap();
+	for result in input.deserialize() {
+	    let record: Rewrite = result.unwrap();
+	    println!("{:?}", record);
+	    rewrites.push(record);
 	}
-	None => println!("no")
     }
+
+    if switch {
+	rewrites.push(Rewrite {
+	    name: "switches".to_string(),
+	    size: 3,
+	    input_graph: u128::from_formula(&Var(0).and(Var(1).or(Var(2)))),
+	    output_graph: u128::from_formula(&(Var(0).and(Var(1))).or(Var(2)))
+	})
+    }
+
+    if medial {
+	rewrites.push(Rewrite {
+	    name: "medials".to_string(),
+	    size: 4,
+	    input_graph: u128::from_formula(&(Var(0).and(Var(1))).or(Var(2).and(Var(3)))),
+	    output_graph: u128::from_formula(&(Var(0).or(Var(2))).and(Var(1).or(Var(3))))
+	})
+    }
+    rewrites
 }
 
 
@@ -384,14 +407,14 @@ fn main() {
 	p4,
 	from_file
     } = Opts::parse();
-    parse_rewrites(from_file,switch,medial);
-    // if all {
-    //     for x in 0..=number_vars {
-    //         run_choose_size(x, check, no_write, Output(quiet), p4);
-    //     }
-    // } else {
-    //     run_choose_size(number_vars, check, no_write, Output(quiet), p4);
-    // }
+    let rewrites = parse_rewrites(from_file,switch,medial);
+    if all {
+        for x in 0..=number_vars {
+            run_choose_size(x, check, no_write, Output(quiet), p4, &rewrites);
+        }
+    } else {
+        run_choose_size(number_vars, check, no_write, Output(quiet), p4, &rewrites);
+    }
 }
 
 #[cfg(test)]

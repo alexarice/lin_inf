@@ -2,7 +2,7 @@ use crate::formula::*;
 use crate::mclique::MClique;
 use crate::permutation::Permutation;
 use crate::Node;
-use itertools::{Either, Itertools};
+use itertools::{Either, Itertools,concat};
 use rayon::prelude::*;
 use std::collections::HashSet;
 
@@ -22,6 +22,32 @@ where
         })
         .collect()
 }
+
+fn generate_partition_vec(len: usize, parts: usize) -> Vec<Vec<usize>> {
+    if len <= 0 {
+	vec![vec![]]
+    }
+    else {
+	let new_parts : Vec<Vec<Vec<usize>>> = generate_partition_vec(len - 1, parts).iter().map(|v| {
+	    (0..parts).map(|i| {
+		let mut v2 = v.clone();
+		v2.push(i);
+		v2
+	    }).collect()
+	}).collect();
+	concat(new_parts)
+    }
+}
+
+fn all_partitions<T: Clone>(s : &[T], parts: usize) -> Vec<Vec<Vec<T>>> {
+    let partition_vec = generate_partition_vec(s.len(), parts);
+    partition_vec.iter().map(|pv| {
+	(0..parts).map(|i| {
+	    s.iter().cloned().enumerate().filter(|(n,_)| pv[*n] == i).map(|(_,v)| v).collect()
+	}).collect()
+    }).collect()
+}
+
 
 pub trait LinGraph: Sized + Eq {
     fn get(&self, x: Node, y: Node) -> bool;
@@ -337,6 +363,43 @@ pub fn is_switch<T: LinGraph>(lg1: &T, lg2: &T, number_vars: usize) -> bool {
     is_switch_help(lg1, lg2, &(0..number_vars).collect())
 }
 
+pub fn is_module<T: LinGraph>(lg: &T, xs:&Vec<Node>, ys:& Vec<Node>) -> bool {
+    ys.iter().all(|y|{
+	let mut vs : Vec<_> = xs.iter().map(|x| lg.get(*x, *y)).collect();
+	vs.dedup();
+	vs.len() <= 1
+    })
+}
+
+fn is_rewrite_help<T: LinGraph, U: LinGraph>(lg1: &T, lg2: &T, xs: &Vec<Node>, lhs: &U, rhs: &U, n_vars_rule: usize) -> bool {
+    let c = all_partitions(xs, n_vars_rule).iter().any(|vs| {
+	let b = vs.iter().all(|v| !v.is_empty() && is_internally_unchanged(lg1, lg2, v));
+	let b2 = (0..n_vars_rule).cartesian_product(0..n_vars_rule).filter(|(x,y)| x != y).all(|(x,y)| {
+	    let cond1 = if lhs.get(x,y) {
+		lg1.is_and_partition(&vs[x], &vs[y])
+	    } else {
+		lg1.is_or_partition(&vs[x], &vs[y])
+	    };
+	    let cond2 = if rhs.get(x,y) {
+		lg2.is_and_partition(&vs[x], &vs[y])
+	    } else {
+		lg2.is_or_partition(&vs[x], &vs[y])
+	    };
+	    cond1 && cond2
+	});
+	b && b2
+    });
+    c
+}
+
+pub fn is_rewrite<T: LinGraph, U: LinGraph>(lg1 : &T, lg2: &T, lhs : &U, rhs: &U, n_vars: usize, n_vars_rule: usize) -> bool {
+    partitions(&(0..n_vars).collect::<Vec<_>>()).iter().any(|(a,b)| {
+	is_module(lg1,a,b) &&
+	    is_module(lg2,a,b) &&
+	    is_rewrite_help(lg1, lg2, a, lhs, rhs, n_vars_rule)
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -346,7 +409,9 @@ mod tests {
         static ref SWITCH1: u32 = u32::from_formula(&Var(0).and(Var(1).or(Var(2))));
         static ref SWITCH2: u32 = u32::from_formula(&(Var(0).and(Var(1))).or(Var(2)));
         static ref SW1MC: Vec<u8> = SWITCH1.max_cliques(3);
-        static ref SW2MC: Vec<u8> = SWITCH2.max_cliques(3);
+	static ref SW2MC: Vec<u8> = SWITCH2.max_cliques(3);
+	static ref SWITCH1EX: u32 = u32::from_formula(&(Var(0).and(Var(1).or(Var(2)))).and(Var(3)));
+	static ref SWITCH2EX: u32 = u32::from_formula(&((Var(0).and(Var(1))).or(Var(2))).and(Var(3)));
         static ref MEDIAL1: u32 = u32::from_formula(&(Var(0).and(Var(1))).or(Var(2).and(Var(3))));
         static ref MEDIAL2: u32 = u32::from_formula(&(Var(0).or(Var(2))).and(Var(1).or(Var(3))));
         static ref M1MC: Vec<u8> = MEDIAL1.max_cliques(4);
@@ -377,6 +442,15 @@ mod tests {
     }
 
     #[test]
+    fn rewrite() {
+	assert!(is_rewrite(&*SWITCH1, &*SWITCH2, &*SWITCH1, &*SWITCH2, 3, 3));
+	assert!(is_rewrite(&*MEDIAL1, &*MEDIAL2, &*MEDIAL1, &*MEDIAL2,4,4));
+	assert!(!is_rewrite(&*SWITCH1, &*SWITCH2, &*MEDIAL1, &*MEDIAL2, 3, 4));
+	assert!(!is_rewrite(&*MEDIAL1, &*MEDIAL2, &*SWITCH1, &*SWITCH2,4,3));
+	assert!(is_rewrite(&*SWITCH1EX, &*SWITCH2EX, &*SWITCH1, &*SWITCH2, 4, 3));
+    }
+
+    #[test]
     fn build_id_u32() {
         for x in u32::all_p4_free(6) {
             assert_eq!(u32::build(|i, j| x.get(i, j), 6), x)
@@ -388,5 +462,19 @@ mod tests {
         for x in Vec::<bool>::all_p4_free(6) {
             assert_eq!(Vec::<bool>::build(|i, j| x.get(i, j), 6), x)
         }
+    }
+
+    #[test]
+    fn partition_test() {
+	let mut lhs : Vec<Vec<Vec<usize>>> = partitions(&(0..8).collect::<Vec<usize>>()).iter().map(|(a,b)| {
+	    let mut v = Vec::new();
+	    v.push(a.clone());
+	    v.push(b.clone());
+	    v
+	}).collect();
+	let mut rhs = all_partitions(&(0..8).collect::<Vec<usize>>(), 2);
+	lhs.sort();
+	rhs.sort();
+	assert_eq!(lhs,rhs)
     }
 }
