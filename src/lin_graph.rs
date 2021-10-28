@@ -23,29 +23,17 @@ where
         .collect()
 }
 
-fn generate_partition_vec(len: usize, parts: usize) -> Vec<Vec<usize>> {
-    if len <= 0 {
-	vec![vec![]]
-    }
-    else {
-	let new_parts : Vec<Vec<Vec<usize>>> = generate_partition_vec(len - 1, parts).iter().map(|v| {
-	    (0..parts).map(|i| {
-		let mut v2 = v.clone();
-		v2.push(i);
-		v2
-	    }).collect()
-	}).collect();
-	concat(new_parts)
-    }
-}
+fn all_ne_partitions<T: Clone>(s : &[T], parts: usize) -> Vec<Vec<Vec<T>>> {
 
-fn all_partitions<T: Clone>(s : &[T], parts: usize) -> Vec<Vec<Vec<T>>> {
-    let partition_vec = generate_partition_vec(s.len(), parts);
-    partition_vec.iter().map(|pv| {
-	(0..parts).map(|i| {
-	    s.iter().cloned().enumerate().filter(|(n,_)| pv[*n] == i).map(|(_,v)| v).collect()
-	}).collect()
-    }).collect()
+    if s.len() < parts {
+	return vec![];
+    }
+    if parts <= 1 {
+	return vec![vec![s.to_vec()]];
+    }
+    concat(partitions(s).into_iter().filter(|(a,_)| a.len() > 0).map(|(a,b)| {
+	all_ne_partitions(&b,parts - 1).into_iter().map(|mut v| {v.push(a.clone()); v}).collect()
+    }).collect::<Vec<_>>())
 }
 
 
@@ -73,6 +61,9 @@ pub trait LinGraph: Sized + Eq {
     fn apply_perm(&self, p: &Permutation) -> Self {
         let pinv = p.invert();
         Self::build(|x, y| self.get(pinv.ap(x), pinv.ap(y)), p.len())
+    }
+    fn dualise(&self, number_vars: usize) -> Self {
+	Self::build(|x, y| !self.get(x,y), number_vars)
     }
     fn max_cliques<M: MClique>(&self, number_vars: usize) -> Vec<M> {
         fn bron_kerbosch<T: LinGraph>(
@@ -371,8 +362,17 @@ pub fn is_module<T: LinGraph>(lg: &T, xs:&Vec<Node>, ys:& Vec<Node>) -> bool {
     })
 }
 
+pub fn reduce_inference<T: LinGraph + Ord>(premise: T, conclusion: T, number_vars: usize) -> (T,T) {
+    Permutation::get_all(number_vars)
+	.map(|p| (premise.apply_perm(&p),conclusion.apply_perm(&p)))
+        .min_by(|(a,b), (c,d)| {
+	    a.cmp(c).then(b.cmp(d))
+	})
+        .unwrap()
+}
+
 fn is_rewrite_help<T: LinGraph, U: LinGraph>(lg1: &T, lg2: &T, xs: &Vec<Node>, lhs: &U, rhs: &U, n_vars_rule: usize) -> bool {
-    let c = all_partitions(xs, n_vars_rule).iter().any(|vs| {
+    let c = all_ne_partitions(xs, n_vars_rule).iter().any(|vs| {
 	let b = vs.iter().all(|v| !v.is_empty() && is_internally_unchanged(lg1, lg2, v));
 	let b2 = (0..n_vars_rule).cartesian_product(0..n_vars_rule).filter(|(x,y)| x != y).all(|(x,y)| {
 	    let cond1 = if lhs.get(x,y) {
@@ -465,16 +465,7 @@ mod tests {
     }
 
     #[test]
-    fn partition_test() {
-	let mut lhs : Vec<Vec<Vec<usize>>> = partitions(&(0..8).collect::<Vec<usize>>()).iter().map(|(a,b)| {
-	    let mut v = Vec::new();
-	    v.push(a.clone());
-	    v.push(b.clone());
-	    v
-	}).collect();
-	let mut rhs = all_partitions(&(0..8).collect::<Vec<usize>>(), 2);
-	lhs.sort();
-	rhs.sort();
-	assert_eq!(lhs,rhs)
+    fn rewrite_test_big() {
+	assert!(is_rewrite(&14921438u32,&36833804u32,&14921438u32,&36833804u32,8,8))
     }
 }
