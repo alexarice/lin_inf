@@ -456,7 +456,18 @@ mod test {
     #[test]
     fn test_5() {
         assert_eq!(
-            run::<u32, u8>(5, true, true, Output(true), true, &parse_rewrites(None, true, true)),
+            run::<u32, u8>(5, &parse_rewrites(&None, true, true), &Opts {
+	     number_vars: 5,
+	     all: false,
+	     switch: true,
+	     medial: true,
+	     from_file: None,
+	     p4: true,
+	     check: true,
+	     no_write: true,
+	     quiet: true,
+	     dual: false
+	    }),
             (vec![65, 12], vec![])
         )
     }
@@ -464,7 +475,18 @@ mod test {
     #[test]
     fn test_6() {
         assert_eq!(
-            run::<u32, u8>(6, true, true, Output(true), true, &parse_rewrites(None, true, true)),
+            run::<u32, u8>(6, &parse_rewrites(&None, true, true), &Opts {
+	     number_vars: 6,
+	     all: false,
+	     switch: true,
+	     medial: true,
+	     from_file: None,
+	     p4: true,
+	     check: true,
+	     no_write: true,
+	     quiet: true,
+	     dual: false
+	    }),
             (vec![266, 84], vec![])
         )
     }
@@ -472,7 +494,18 @@ mod test {
     #[test]
     fn test_6_u64() {
         assert_eq!(
-            run::<u64, u16>(6, true, true, Output(true), true, &parse_rewrites(None, true, true)),
+            run::<u64, u16>(6, &parse_rewrites(&None, true, true), &Opts {
+	     number_vars: 6,
+	     all: false,
+	     switch: true,
+	     medial: true,
+	     from_file: None,
+	     p4: true,
+	     check: true,
+	     no_write: true,
+	     quiet: true,
+	     dual: false
+	    }),
             (vec![266, 84], vec![])
         )
     }
