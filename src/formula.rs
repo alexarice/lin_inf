@@ -12,8 +12,10 @@ pub use Connective::*;
 impl Display for Connective {
     fn fmt(&self, f: &mut Formatter) -> Result {
         match self {
-            And => write!(f, "∧"),
-            Or => write!(f, "∨"),
+            // And => write!(f, "∧"),
+            // Or => write!(f, "∨"),
+	    And => write!(f, "\\land"),
+            Or => write!(f, "\\lor"),
         }
     }
 }
