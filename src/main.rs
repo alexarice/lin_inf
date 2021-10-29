@@ -59,9 +59,25 @@ struct Rewrite {
     output_graph: u128
 }
 
-#[derive(Clap,Clone)]
+#[derive(Clap)]
 #[clap(version = "0.1", author = "Alex Rice <aar53@cam.ac.uk>")]
 struct Opts {
+    #[clap(subcommand)]
+    subcmd : SubCommand
+}
+
+#[derive(Clap)]
+enum SubCommand {
+    #[clap(version = "0.1", author = "Alex Rice <aar53@cam.ac.uk>")]
+    Search(SearchOpts),
+    #[clap(version = "0.1", author = "Alex Rice <aar53@cam.ac.uk>")]
+    Latex(LatexOpts),
+    #[clap(version = "0.1", author = "Alex Rice <aar53@cam.ac.uk>")]
+    Dualise(DualiseOpts)
+}
+
+#[derive(Clap,Clone)]
+struct SearchOpts {
     /// Number of Variables
     number_vars: usize,
     /// Run for all variables up to number_vars
@@ -91,6 +107,40 @@ struct Opts {
     /// get rewrites from file
     #[clap(long)]
     from_file: Option<String>
+}
+
+/// Latexify p4 free graphs
+#[derive(Clap,Clone)]
+struct LatexOpts {
+    /// Number of Variables
+    #[clap(short,long)]
+    number_vars: Option<usize>,
+    /// premise graph
+    #[clap(short,long)]
+    premise: Option<u128>,
+    /// conclusion graph
+    #[clap(short,long)]
+    conclusion: Option<u128>,
+    /// get inferences from file
+    #[clap(long)]
+    from_file: Option<String>,
+}
+
+/// Analyse duality of graphs
+#[derive(Clap,Clone)]
+struct DualiseOpts {
+    /// Number of Variables
+    #[clap(short,long)]
+    number_vars: Option<usize>,
+    /// premise graph
+    #[clap(short,long)]
+    premise: Option<u128>,
+    /// conclusion graph
+    #[clap(short,long)]
+    conclusion: Option<u128>,
+    /// get inferences from file
+    #[clap(long)]
+    from_file: Option<String>,
 }
 
 fn all_max_cliques<T, U>(xs: &Vec<T>, number_vars: usize, o: &Output) -> HashMap<T, Vec<U>>
@@ -231,7 +281,7 @@ where
     map
 }
 
-fn run_choose_size(number_vars: usize, rewrites : &Vec<Rewrite>, opts: &Opts) {
+fn run_choose_size(number_vars: usize, rewrites : &Vec<Rewrite>, opts: &SearchOpts) {
     if number_vars < 9 {
         run::<u32, u8>(number_vars, &rewrites, opts);
     } else if number_vars < 12 {
@@ -244,13 +294,13 @@ fn run_choose_size(number_vars: usize, rewrites : &Vec<Rewrite>, opts: &Opts) {
 fn run<T, U>(
     number_vars: usize,
     rewrites : &Vec<Rewrite>,
-    opts: &Opts
+    opts: &SearchOpts
 ) -> (Vec<usize>, Vec<(T, T)>)
 where
     T: NumericGraph,
     U: NumericMClique,
 {
-    let Opts {
+    let SearchOpts {
 	check,
 	no_write,
 	quiet,
@@ -428,25 +478,69 @@ fn parse_rewrites(filename: &Option<String>, switch : bool, medial: bool) -> Vec
     rewrites
 }
 
+fn dualise(rewrite: Rewrite) {
+    let Rewrite {
+	name,
+	size,
+	input_graph,
+	output_graph,
+    } = rewrite;
+    if name != "" {
+	println!("Analysing {}", name);
+    }
+    let (a,b) = reduce_inference(input_graph, output_graph, size);
+    let (duala, dualb) = (output_graph.dualise(size), input_graph.dualise(size));
+    let (ad, bd) = reduce_inference(duala, dualb, size);
+    println!("Dualising {} -> {}", input_graph, output_graph);
+    println!("Dual is {} -> {}", duala,dualb);
+    println!("Original reduces to {} -> {}", a, b);
+    println!("Dual reduces to {} -> {}", ad, bd);
+    if (a,b) == (ad, bd) {
+	println!("{} -> {} is self dual", input_graph, output_graph);
+    }
+}
+
 
 fn main() {
     let opts = Opts::parse();
-    let Opts {
-        number_vars,
-        all,
-	switch,
-	medial,
-	from_file,
-	..
-    } = &opts;
-    let rewrites = parse_rewrites(from_file,*switch,*medial);
-    if *all {
-        for x in 0..=*number_vars {
-            run_choose_size(x, &rewrites, &opts);
-        }
-    } else {
-        run_choose_size(*number_vars, &rewrites, &opts);
+    match opts.subcmd {
+	SubCommand::Search(opts) => {
+	    let SearchOpts {
+		number_vars,
+		all,
+		switch,
+		medial,
+		from_file,
+		..
+	    } = &opts;
+	    let rewrites = parse_rewrites(from_file,*switch,*medial);
+	    if *all {
+		for x in 0..=*number_vars {
+		    run_choose_size(x, &rewrites, &opts);
+		}
+	    } else {
+		run_choose_size(*number_vars, &rewrites, &opts);
+	    }
+	},
+	SubCommand::Dualise(opts) => {
+	    let DualiseOpts { number_vars, premise, conclusion, from_file } = opts;
+	    let mut rewrites = parse_rewrites(&from_file, false, false);
+	    match (number_vars, premise, conclusion) {
+		(Some(nv), Some(p), Some(c)) => {
+		    rewrites.push(Rewrite { name: "".to_string(), size: nv, input_graph: p, output_graph: c })
+		}
+		_ => ()
+	    }
+	    for r in rewrites {
+		dualise(r);
+		println!("-----");
+	    }
+	},
+	SubCommand::Latex(opts) => {
+
+	}
     }
+
 }
 
 #[cfg(test)]
