@@ -500,6 +500,30 @@ fn dualise(rewrite: Rewrite) {
     }
 }
 
+fn into_latex(rewrite: Rewrite) {
+    let Rewrite {
+	name,
+	size,
+	input_graph,
+	output_graph,
+    } = rewrite;
+    if input_graph.p4_free(size) && output_graph.p4_free(size) {
+	let premise = input_graph.cograph_decomp(size);
+	let conclusion = output_graph.cograph_decomp(size);
+	println!(r#"\begin{{equation}}"#);
+	println!(""); // for label
+	println!(r#"\begin{{alignedat}}{{2}}"#);
+	println!("& &&{}", premise);
+	println!(r#"&\to &\quad& {}"#, conclusion);
+	println!(r#"\end{{alignedat}}"#);
+	println!(r#"\end{{equation}}"#);
+
+    }
+    else {
+	println!("Input must be p4 free");
+    }
+}
+
 
 fn main() {
     let opts = Opts::parse();
@@ -537,7 +561,19 @@ fn main() {
 	    }
 	},
 	SubCommand::Latex(opts) => {
-
+	    let LatexOpts { number_vars, premise, conclusion, from_file } = opts;
+	    let mut rewrites = parse_rewrites(&from_file, false, false);
+	    match (number_vars, premise, conclusion) {
+		(Some(nv), Some(p), Some(c)) => {
+		    rewrites.push(Rewrite { name: "".to_string(), size: nv, input_graph: p, output_graph: c })
+		}
+		_ => ()
+	    }
+	    for r in rewrites {
+		println!("{}", r.name);
+		into_latex(r);
+		println!("")
+	    }
 	}
     }
 
