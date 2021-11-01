@@ -73,40 +73,57 @@ enum SubCommand {
     #[clap(version = "0.1", author = "Alex Rice <aar53@cam.ac.uk>")]
     Latex(LatexOpts),
     #[clap(version = "0.1", author = "Alex Rice <aar53@cam.ac.uk>")]
-    Dualise(DualiseOpts)
+    Dualise(DualiseOpts),
+    #[clap(version = "0.1", author = "Alex Rice <aar53@cam.ac.uk>")]
+    Basis(BasisOpts)
 }
 
+/// Search for underivable inferences
 #[derive(Clap,Clone)]
 struct SearchOpts {
     /// Number of Variables
     number_vars: usize,
-    /// Run for all variables up to number_vars
-    #[clap(short, long)]
-    all: bool,
-    /// Do not use cached files
-    #[clap(short, long)]
-    check: bool,
-    /// Do not write to cache
-    #[clap(short, long)]
-    no_write: bool,
-    /// Only print result
-    #[clap(short, long)]
-    quiet: bool,
+
+    #[clap(flatten)]
+    run_opts: RunOpts,
+
     /// use switch
     #[clap(short, long)]
     switch: bool,
     /// use medial
     #[clap(short, long)]
     medial: bool,
-    /// restrict to p4
-    #[clap(short, long)]
-    p4: bool,
-    /// Use dual notion of implication
-    #[clap(short, long)]
-    dual: bool,
-    /// get rewrites from file
     #[clap(long)]
     from_file: Option<String>
+}
+
+/// Generate basis M_n
+#[derive(Clap,Clone)]
+struct BasisOpts {
+    /// Number of variables to run up to
+    number_vars: usize,
+
+    #[clap(flatten)]
+    run_opts: RunOpts
+}
+
+#[derive(Clap,Clone)]
+struct RunOpts {
+    /// Do not use cached files
+    #[clap(short,long)]
+    check: bool,
+    /// restrict to p4
+    #[clap(short,long)]
+    p4: bool,
+    /// Use dual notion of implication
+    #[clap(short,long)]
+    dual: bool,
+    /// Do not write to cache
+    #[clap(short, long)]
+    no_write: bool,
+    /// Only print result
+    #[clap(short, long)]
+    quiet: bool,
 }
 
 /// Latexify p4 free graphs
@@ -281,32 +298,31 @@ where
     map
 }
 
-fn run_choose_size(number_vars: usize, rewrites : &Vec<Rewrite>, opts: &SearchOpts) {
+fn run_choose_size(number_vars: usize, rewrites : &Vec<Rewrite>, opts: &RunOpts) -> Vec<(u128,u128)> {
     if number_vars < 9 {
-        run::<u32, u8>(number_vars, &rewrites, opts);
+        run::<u32, u8>(number_vars, &rewrites, opts).1.into_iter().map(|(a,b)| (u128::from(a), u128::from(b))).collect()
     } else if number_vars < 12 {
-        run::<u64, u16>(number_vars, &rewrites, opts);
+        run::<u64, u16>(number_vars, &rewrites, opts).1.into_iter().map(|(a,b)| (u128::from(a), u128::from(b))).collect()
     } else {
-        run::<u128, u16>(number_vars, &rewrites, opts);
+        run::<u128, u16>(number_vars, &rewrites, opts).1
     }
 }
 
 fn run<T, U>(
     number_vars: usize,
     rewrites : &Vec<Rewrite>,
-    opts: &SearchOpts
+    opts: &RunOpts
 ) -> (Vec<usize>, Vec<(T, T)>)
 where
     T: NumericGraph,
     U: NumericMClique,
 {
-    let SearchOpts {
+    let RunOpts {
 	check,
 	no_write,
 	quiet,
 	p4,
-	dual,
-	..
+	dual
     } = opts.clone();
     let o = Output(quiet);
     let graphs = if p4 {
@@ -437,6 +453,7 @@ where
 	}).join(" "),
         others_len
     );
+    println!("There were {} other inferences up to isomorphism", others.len());
     (classified, others)
 }
 
@@ -531,20 +548,14 @@ fn main() {
 	SubCommand::Search(opts) => {
 	    let SearchOpts {
 		number_vars,
-		all,
 		switch,
 		medial,
 		from_file,
-		..
+		run_opts
 	    } = &opts;
 	    let rewrites = parse_rewrites(from_file,*switch,*medial);
-	    if *all {
-		for x in 0..=*number_vars {
-		    run_choose_size(x, &rewrites, &opts);
-		}
-	    } else {
-		run_choose_size(*number_vars, &rewrites, &opts);
-	    }
+	    run_choose_size(*number_vars, &rewrites, &run_opts);
+
 	},
 	SubCommand::Dualise(opts) => {
 	    let DualiseOpts { number_vars, premise, conclusion, from_file } = opts;
@@ -574,9 +585,28 @@ fn main() {
 		into_latex(r);
 		println!("")
 	    }
+	},
+	SubCommand::Basis(opts) => {
+	    let BasisOpts {
+		number_vars,
+		run_opts,
+		..
+	    } = &opts;
+	    let mut current_rewrites : Vec<Rewrite> = vec![];
+	    for i in 0..=*number_vars {
+		println!("---------------");
+		println!("Running on {} variables", i);
+
+		let mut new_rewrites = run_choose_size(i, &current_rewrites, &run_opts).into_iter().enumerate().map(|(n,(a,b))| Rewrite {
+		    name: format!("{}_{}", n, i),
+		    size: i,
+		    input_graph: a,
+		    output_graph: b
+		}).collect();
+		current_rewrites.append(&mut new_rewrites)
+	    }
 	}
     }
-
 }
 
 #[cfg(test)]
@@ -586,12 +616,7 @@ mod test {
     #[test]
     fn test_5() {
         assert_eq!(
-            run::<u32, u8>(5, &parse_rewrites(&None, true, true), &Opts {
-	     number_vars: 5,
-	     all: false,
-	     switch: true,
-	     medial: true,
-	     from_file: None,
+            run::<u32, u8>(5, &parse_rewrites(&None, true, true), &RunOpts {
 	     p4: true,
 	     check: true,
 	     no_write: true,
@@ -605,12 +630,7 @@ mod test {
     #[test]
     fn test_6() {
         assert_eq!(
-            run::<u32, u8>(6, &parse_rewrites(&None, true, true), &Opts {
-	     number_vars: 6,
-	     all: false,
-	     switch: true,
-	     medial: true,
-	     from_file: None,
+            run::<u32, u8>(6, &parse_rewrites(&None, true, true), &RunOpts {
 	     p4: true,
 	     check: true,
 	     no_write: true,
@@ -624,12 +644,7 @@ mod test {
     #[test]
     fn test_6_u64() {
         assert_eq!(
-            run::<u64, u16>(6, &parse_rewrites(&None, true, true), &Opts {
-	     number_vars: 6,
-	     all: false,
-	     switch: true,
-	     medial: true,
-	     from_file: None,
+            run::<u64, u16>(6, &parse_rewrites(&None, true, true), &RunOpts {
 	     p4: true,
 	     check: true,
 	     no_write: true,
