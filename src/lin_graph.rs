@@ -23,20 +23,6 @@ where
         .collect()
 }
 
-fn all_ne_partitions<T: Clone>(s : &[T], parts: usize) -> Vec<Vec<Vec<T>>> {
-
-    if s.len() < parts {
-	return vec![];
-    }
-    if parts <= 1 {
-	return vec![vec![s.to_vec()]];
-    }
-    concat(partitions(s).into_iter().filter(|(a,_)| a.len() > 0).map(|(a,b)| {
-	all_ne_partitions(&b,parts - 1).into_iter().map(|mut v| {v.push(a.clone()); v}).collect()
-    }).collect::<Vec<_>>())
-}
-
-
 pub trait LinGraph: Sized + Eq {
     fn get(&self, x: Node, y: Node) -> bool;
     fn build<T>(f: T, number_vars: usize) -> Self
@@ -371,8 +357,21 @@ pub fn reduce_inference<T: LinGraph + Ord>(premise: T, conclusion: T, number_var
         .unwrap()
 }
 
+fn all_ne_partitions<T: LinGraph>(s : &[usize], lhs: &T, rhs: &T, parts: usize) -> Vec<Vec<Vec<usize>>> {
+
+    if s.len() < parts {
+	return vec![];
+    }
+    if parts <= 1 {
+	return vec![vec![s.to_vec()]];
+    }
+    concat(partitions(s).into_iter().filter(|(a,b)| a.len() > 0 && is_module(lhs, a, b) && is_module(rhs, a, b)).map(|(a,b)| {
+	all_ne_partitions(&b, lhs, rhs, parts - 1).into_iter().map(|mut v| {v.push(a.clone()); v}).collect()
+    }).collect::<Vec<_>>())
+}
+
 fn is_rewrite_help<T: LinGraph, U: LinGraph>(lg1: &T, lg2: &T, xs: &Vec<Node>, lhs: &U, rhs: &U, n_vars_rule: usize) -> bool {
-    let c = all_ne_partitions(xs, n_vars_rule).iter().any(|vs| {
+    let c = all_ne_partitions(xs, lg1, lg2, n_vars_rule).iter().any(|vs| {
 	let b = vs.iter().all(|v| !v.is_empty() && is_internally_unchanged(lg1, lg2, v));
 	let b2 = (0..n_vars_rule).cartesian_product(0..n_vars_rule).filter(|(x,y)| x != y).all(|(x,y)| {
 	    let cond1 = if lhs.get(x,y) {
