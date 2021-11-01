@@ -502,7 +502,7 @@ fn dualise(rewrite: Rewrite) {
 
 fn into_latex(rewrite: Rewrite) {
     let Rewrite {
-	name,
+	name: _,
 	size,
 	input_graph,
 	output_graph,
@@ -513,7 +513,7 @@ fn into_latex(rewrite: Rewrite) {
 	println!(r#"\begin{{equation}}"#);
 	println!(""); // for label
 	println!(r#"\begin{{alignedat}}{{2}}"#);
-	println!("& &&{}", premise);
+	println!(r#"& &&{}\\"#, premise);
 	println!(r#"&\to &\quad& {}"#, conclusion);
 	println!(r#"\end{{alignedat}}"#);
 	println!(r#"\end{{equation}}"#);
