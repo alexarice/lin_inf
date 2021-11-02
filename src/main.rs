@@ -141,6 +141,9 @@ struct LatexOpts {
     /// get inferences from file
     #[clap(long)]
     from_file: Option<String>,
+    /// Only show graphs
+    #[clap(short,long)]
+    only_graph: bool
 }
 
 /// Analyse duality of graphs
@@ -517,14 +520,18 @@ fn dualise(rewrite: Rewrite) {
     }
 }
 
-fn into_latex(rewrite: Rewrite) {
+fn write_graph_edges<T : LinGraph>(x: &T, size: usize) -> String {
+    (0..size).tuple_combinations().map(|(a,b)| { if x.get(a,b) { 'r' } else { 'g' }}).collect()
+}
+
+fn into_latex(rewrite: Rewrite, only_graph: bool) {
     let Rewrite {
 	name: _,
 	size,
 	input_graph,
 	output_graph,
     } = rewrite;
-    if input_graph.p4_free(size) && output_graph.p4_free(size) {
+    if input_graph.p4_free(size) && output_graph.p4_free(size) && !only_graph {
 	let premise = input_graph.cograph_decomp(size);
 	let conclusion = output_graph.cograph_decomp(size);
 	println!(r#"\begin{{equation}}"#);
@@ -534,11 +541,32 @@ fn into_latex(rewrite: Rewrite) {
 	println!(r#"&\to &\quad& {}"#, conclusion);
 	println!(r#"\end{{alignedat}}"#);
 	println!(r#"\end{{equation}}"#);
+    }
+    else if !only_graph {
+	println!("Input is not p4 free");
+    }
+    let nodes = (0..size).map(|x| x.to_string()).collect::<Vec<String>>().join(",");
+    let graph_command = match size {
+	2 => Some("TwoGraph"),
+	3 => Some("ThreeGraph"),
+	4 => Some("FourGraph"),
+	5 => Some("FiveGraph"),
+	6 => Some("SixGraph"),
+	7 => Some("SevenGraph"),
+	8 => Some("EightGraph"),
+	_ => None
+    };
+    if let Some(s) = graph_command {
+	if !only_graph { println!("Input graph:") } else { print!(r#"\["#) };
+	println!(r#"\{}{{{}}}{}"#, s, nodes, write_graph_edges(&input_graph, size));
+	if !only_graph { println!("Output graph:") } else { println!(r#"\to"#)};
+	println!(r#"\{}{{{}}}{}{}"#, s, nodes, write_graph_edges(&output_graph, size), if only_graph { r#"\]"# } else { "" });
+    }
+}
 
-    }
-    else {
-	println!("Input must be p4 free");
-    }
+fn get_basis_filename(opts : &RunOpts, number_vars: usize) -> String {
+    let RunOpts { check: _, p4, dual, no_write: _, quiet: _ } = opts;
+    format!("Basis/basis{}{}_{}", if *p4 { "_p4free" } else { "" }, if *dual { "_dual" } else { "" }, number_vars)
 }
 
 
@@ -572,7 +600,7 @@ fn main() {
 	    }
 	},
 	SubCommand::Latex(opts) => {
-	    let LatexOpts { number_vars, premise, conclusion, from_file } = opts;
+	    let LatexOpts { number_vars, premise, conclusion, from_file, only_graph } = opts;
 	    let mut rewrites = parse_rewrites(&from_file, false, false);
 	    match (number_vars, premise, conclusion) {
 		(Some(nv), Some(p), Some(c)) => {
@@ -581,8 +609,8 @@ fn main() {
 		_ => ()
 	    }
 	    for r in rewrites {
-		println!("{}", r.name);
-		into_latex(r);
+		if !only_graph { println!("{}", r.name) };
+		into_latex(r, only_graph);
 		println!("")
 	    }
 	},
@@ -597,12 +625,16 @@ fn main() {
 		println!("---------------");
 		println!("Running on {} variables", i);
 
-		let mut new_rewrites = run_choose_size(i, &current_rewrites, &run_opts).into_iter().enumerate().map(|(n,(a,b))| Rewrite {
+		let mut new_rewrites : Vec<Rewrite> = run_choose_size(i, &current_rewrites, &run_opts).into_iter().enumerate().map(|(n,(a,b))| Rewrite {
 		    name: format!("{}_{}", n, i),
 		    size: i,
 		    input_graph: a,
 		    output_graph: b
 		}).collect();
+		if ! run_opts.no_write {
+		    let data = new_rewrites.iter().map(| Rewrite { name, size, input_graph, output_graph } | format!("{},{},{},{}", name , size,input_graph,output_graph)).collect::<Vec<_>>().join("\n");
+		    fs::write(get_basis_filename(run_opts, i), data).unwrap();
+		}
 		current_rewrites.append(&mut new_rewrites)
 	    }
 	}
