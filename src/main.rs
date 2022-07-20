@@ -574,12 +574,13 @@ fn into_latex(rewrite: Rewrite, only_graph: bool) {
 	6 => Some("SixGraph"),
 	7 => Some("SevenGraph"),
 	8 => Some("EightGraph"),
+	9 => Some("NineGraph"),
 	_ => None
     };
     if let Some(s) = graph_command {
 	if !only_graph { println!("Input graph:") } else { print!(r#"\["#) };
 	println!(r#"\{}{{{}}}{}"#, s, nodes, write_graph_edges(&input_graph, size));
-	if !only_graph { println!("Output graph:") } else { println!(r#"\to"#)};
+	if !only_graph { println!("Output graph:") } else { println!(r#"\quad \to \quad"#)};
 	println!(r#"\{}{{{}}}{}{}"#, s, nodes, write_graph_edges(&output_graph, size), if only_graph { r#"\]"# } else { "" });
     }
 }
