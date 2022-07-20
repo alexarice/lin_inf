@@ -1,4 +1,4 @@
-use clap::Clap;
+use clap::Parser;
 use indicatif::{ParallelProgressIterator, ProgressBar};
 use rayon::prelude::*;
 use serde::de::DeserializeOwned;
@@ -11,12 +11,13 @@ use std::fmt::Display;
 use std::format;
 use std::fs;
 use std::hash::Hash;
+use std::path::PathBuf;
 use itertools::Itertools;
 
 use lin_inf::lin_graph::*;
 use lin_inf::mclique::*;
 use lin_inf::permutation::Permutation;
-use lin_inf::formula::Var;
+use lin_inf::formula::{Var,Const};
 
 trait NumericGraph:
     LinGraph + Ord + Hash + Send + Sync + Clone + Copy + Display + Serialize + DeserializeOwned
@@ -59,14 +60,14 @@ struct Rewrite {
     output_graph: u128
 }
 
-#[derive(Clap)]
+#[derive(Parser)]
 #[clap(version = "0.1", author = "Alex Rice <aar53@cam.ac.uk>")]
 struct Opts {
     #[clap(subcommand)]
     subcmd : SubCommand
 }
 
-#[derive(Clap)]
+#[derive(Parser)]
 enum SubCommand {
     #[clap(version = "0.1", author = "Alex Rice <aar53@cam.ac.uk>")]
     Search(SearchOpts),
@@ -75,11 +76,13 @@ enum SubCommand {
     #[clap(version = "0.1", author = "Alex Rice <aar53@cam.ac.uk>")]
     Dualise(DualiseOpts),
     #[clap(version = "0.1", author = "Alex Rice <aar53@cam.ac.uk>")]
-    Basis(BasisOpts)
+    Basis(BasisOpts),
+    #[clap(version = "0.1", author = "Alex Rice <aar53@cam.ac.uk>")]
+    Data(DataOpts)
 }
 
 /// Search for underivable inferences
-#[derive(Clap,Clone)]
+#[derive(Parser,Clone)]
 struct SearchOpts {
     /// Number of Variables
     number_vars: usize,
@@ -98,7 +101,7 @@ struct SearchOpts {
 }
 
 /// Generate basis M_n
-#[derive(Clap,Clone)]
+#[derive(Parser,Clone)]
 struct BasisOpts {
     /// Number of variables to run up to
     number_vars: usize,
@@ -107,7 +110,7 @@ struct BasisOpts {
     run_opts: RunOpts
 }
 
-#[derive(Clap,Clone)]
+#[derive(Parser,Clone)]
 struct RunOpts {
     /// Do not use cached files
     #[clap(short,long)]
@@ -127,7 +130,7 @@ struct RunOpts {
 }
 
 /// Latexify p4 free graphs
-#[derive(Clap,Clone)]
+#[derive(Parser,Clone)]
 struct LatexOpts {
     /// Number of Variables
     #[clap(short,long)]
@@ -146,8 +149,25 @@ struct LatexOpts {
     only_graph: bool
 }
 
+/// Display data about given inferences
+#[derive(Parser,Clone)]
+struct DataOpts {
+    /// Number of Variables
+    #[clap(short,long)]
+    number_vars: Option<usize>,
+    /// premise graph
+    #[clap(short,long)]
+    premise: Option<u128>,
+    /// conclusion graph
+    #[clap(short,long)]
+    conclusion: Option<u128>,
+    /// get inferences from file
+    #[clap(long)]
+    from_file: Option<String>
+}
+
 /// Analyse duality of graphs
-#[derive(Clap,Clone)]
+#[derive(Parser,Clone)]
 struct DualiseOpts {
     /// Number of Variables
     #[clap(short,long)]
@@ -217,20 +237,22 @@ where
         serde_json::from_str(&b).unwrap()
     } else {
         {
-                if check {
-                    o.out(&format!("Building {} now...", filename))
-                } else {
-                    o.out(&format!(
-                        "Could not read file '{}', building now...",
-                        filename
-                    ));
-                }
-                let b = builder();
-                if !no_write {
-                    fs::write(filename, serde_json::to_string(&b).unwrap()).unwrap();
-                }
-                b
+            if check {
+                o.out(&format!("Building {} now...", filename))
+            } else {
+                o.out(&format!(
+                    "Could not read file '{}', building now...",
+                    filename
+                ));
             }
+            let b = builder();
+            if !no_write {
+		let path = PathBuf::from(filename);
+		fs::create_dir_all(path.parent().unwrap()).unwrap();
+                fs::write(filename, serde_json::to_string(&b).unwrap()).unwrap();
+            }
+            b
+        }
     }
 }
 
@@ -482,7 +504,6 @@ fn parse_rewrites(filename: &Option<String>, switch : bool, medial: bool) -> Vec
     }
 
     if let Some(file) = filename {
-	println!("File: {}", file);
 	let mut input = csv::ReaderBuilder::new()
 	    .has_headers(false)
 	    .comment(Some(b'#'))
@@ -490,7 +511,6 @@ fn parse_rewrites(filename: &Option<String>, switch : bool, medial: bool) -> Vec
 	    .unwrap();
 	for result in input.deserialize() {
 	    let record: Rewrite = result.unwrap();
-	    println!("{:?}", record);
 	    rewrites.push(record);
 	}
     }
@@ -633,9 +653,77 @@ fn main() {
 		}).collect();
 		if ! run_opts.no_write {
 		    let data = new_rewrites.iter().map(| Rewrite { name, size, input_graph, output_graph } | format!("{},{},{},{}", name , size,input_graph,output_graph)).collect::<Vec<_>>().join("\n");
+		    let filename = get_basis_filename(run_opts, i);
+		    let path = PathBuf::from(filename);
+		    fs::create_dir_all(path.parent().unwrap()).unwrap();
 		    fs::write(get_basis_filename(run_opts, i), data).unwrap();
 		}
 		current_rewrites.append(&mut new_rewrites)
+	    }
+	}
+	SubCommand::Data(opts) => {
+	    let DataOpts {
+		number_vars,
+		premise,
+		conclusion,
+		from_file
+	    } = opts;
+	    let mut rewrites = parse_rewrites(&from_file, false, false);
+	    match (number_vars, premise, conclusion) {
+		(Some(nv), Some(p), Some(c)) => {
+		    rewrites.push(Rewrite { name: "".to_string(), size: nv, input_graph: p, output_graph: c })
+		}
+		_ => ()
+	    }
+	    rewrites = vec![Rewrite{ name: "test".to_string() ,
+				     size: 4,
+				     input_graph: u128::from_formula(&(Var(0).and(Var(1).or(Var(2)))).and(Var(3))),
+				     output_graph: u128::from_formula(&((Var(0).and(Var(1))).or(Var(2))).and(Var(3)))}];
+	    for r in rewrites {
+		println!("---------------");
+		println!("Inference {}", r.name);
+		let in_form = r.input_graph.cograph_decomp(r.size);
+		let out_form = r.output_graph.cograph_decomp(r.size);
+		println!("Input formula:");
+		println!("{}", in_form);
+		println!("{} red edges and {} green edges", r.input_graph.edges(r.size), r.input_graph.non_edges(r.size));
+		println!("Output formula:");
+		println!("{}", out_form);
+		println!("{} red edges and {} green edges", r.output_graph.edges(r.size), r.output_graph.non_edges(r.size));
+		println!("{} green edges turn red in this inference and {} green edges turn red", non_edge_to_edge(&r.input_graph, &r.output_graph, r.size), edge_to_non_edge(&r.input_graph, &r.output_graph, r.size));
+		let basis : Vec<_> = (0..r.size).map( | x | parse_rewrites(&Some(get_basis_filename(&RunOpts { p4: true, check: false, no_write: true, quiet: true, dual: false}, x)),false,false)).collect();
+		let mut deduces : Vec<(String, Vec<usize>)>= (0..3).combinations_with_replacement(r.size).map(| v | {
+		    let f = | x : usize | {
+			if x > r.size {
+			    Var(x)
+			}
+			else {
+			    match v[x] {
+				0 => Const(true),
+				1 => Const(false),
+				_ => Var(x)
+			    }
+			}
+		    };
+		    let left = in_form.map_formula(&f).simplify();
+		    let right = out_form.map_formula(&f).simplify();
+		    if left.unit_free() && right.unit_free() && left.len() == right.len() && left.len() < r.size {
+			let lg1 = u128::from_formula(&left);
+			let lg2 = u128::from_formula(&right);
+			let (t1, t2) = reduce_inference(lg1 , lg2, left.len());
+			println!("Here {} {}", left, right);
+			let out = basis[left.len()].iter().find(| r2 | r2.size == left.len() && r2.input_graph == t1 && r2.output_graph == t2 ).map(|r| r.name.clone());
+			out.map(|x| (x,v))
+		    }
+		    else {
+			None
+		    }
+		}).filter_map(| x | x).collect();
+		deduces.sort();
+		deduces.dedup_by_key(| (x,_) | x.clone());
+		for (x, _) in deduces {
+		    println! ("deduces {}", x);
+		}
 	    }
 	}
     }
