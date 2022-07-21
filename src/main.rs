@@ -676,10 +676,6 @@ fn main() {
 		}
 		_ => ()
 	    }
-	    rewrites = vec![Rewrite{ name: "test".to_string() ,
-				     size: 4,
-				     input_graph: u128::from_formula(&(Var(0).and(Var(1).or(Var(2)))).and(Var(3))),
-				     output_graph: u128::from_formula(&((Var(0).and(Var(1))).or(Var(2))).and(Var(3)))}];
 	    for r in rewrites {
 		println!("---------------");
 		println!("Inference {}", r.name);
@@ -693,18 +689,21 @@ fn main() {
 		println!("{} red edges and {} green edges", r.output_graph.edges(r.size), r.output_graph.non_edges(r.size));
 		println!("{} green edges turn red in this inference and {} green edges turn red", non_edge_to_edge(&r.input_graph, &r.output_graph, r.size), edge_to_non_edge(&r.input_graph, &r.output_graph, r.size));
 		let basis : Vec<_> = (0..r.size).map( | x | parse_rewrites(&Some(get_basis_filename(&RunOpts { p4: true, check: false, no_write: true, quiet: true, dual: false}, x)),false,false)).collect();
-		let mut deduces : Vec<(String, Vec<usize>)>= (0..3).combinations_with_replacement(r.size).map(| v | {
+		let mut deduces : Vec<(String, Vec<usize>)>= (0..r.size).map(|_| (0..3)).multi_cartesian_product().map(| v | {
+		    let mut v2 = Vec::new();
+		    let mut current_var = 0;
+		    for x in v.iter() {
+		       match x {
+			   0 => v2.push(Const(true)),
+			   1 => v2.push(Const(false)),
+			   _ => {
+			       v2.push(Var(current_var));
+			       current_var += 1;
+			   }
+                       }
+		    }
 		    let f = | x : usize | {
-			if x > r.size {
-			    Var(x)
-			}
-			else {
-			    match v[x] {
-				0 => Const(true),
-				1 => Const(false),
-				_ => Var(x)
-			    }
-			}
+			v2[x].clone()
 		    };
 		    let left = in_form.map_formula(&f).simplify();
 		    let right = out_form.map_formula(&f).simplify();
@@ -712,9 +711,8 @@ fn main() {
 			let lg1 = u128::from_formula(&left);
 			let lg2 = u128::from_formula(&right);
 			let (t1, t2) = reduce_inference(lg1 , lg2, left.len());
-			println!("Here {} {}", left, right);
 			let out = basis[left.len()].iter().find(| r2 | r2.size == left.len() && r2.input_graph == t1 && r2.output_graph == t2 ).map(|r| r.name.clone());
-			out.map(|x| (x,v))
+			out.map(move |x| (x,v))
 		    }
 		    else {
 			None

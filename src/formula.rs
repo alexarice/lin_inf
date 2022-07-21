@@ -25,7 +25,7 @@ impl Display for Connective {
 }
 
 /// Recursive data type for representing formulae
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub enum Formula {
     Const(bool),
     Var(Node),
