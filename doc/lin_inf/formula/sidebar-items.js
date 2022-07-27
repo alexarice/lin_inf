@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["Connective","Data type for connectives"],["Formula","Recursive data type for representing formulae"]]});
