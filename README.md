@@ -22,4 +22,4 @@ cargo run --release basis 6 --no-write
 ```
 
 ## Documentation
-Full documentation for the library can be found [here](doc/lin_inf/index.html) (best viewed by downloading the repository and opening the file in a browser).
+Full documentation for the library can be found [here](https://alexarice.github.io/lin_inf/lin_inf/index.html) (best viewed by downloading the repository and opening the file in a browser).
