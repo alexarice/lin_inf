@@ -657,7 +657,12 @@ fn main() {
 		    let filename = get_basis_filename(run_opts, i);
 		    let path = PathBuf::from(filename);
 		    fs::create_dir_all(path.parent().unwrap()).unwrap();
-		    fs::write(get_basis_filename(run_opts, i), data).unwrap();
+		    if path.exists() && ! run_opts.check {
+			println!("Found basis file {}, not overwriting", path.file_name().unwrap().to_str().unwrap())
+		    }
+		    else {
+			fs::write(get_basis_filename(run_opts, i), data).unwrap();
+		    }
 		}
 		current_rewrites.append(&mut new_rewrites)
 	    }
