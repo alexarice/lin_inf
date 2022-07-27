@@ -1,8 +1,8 @@
 # lin_inf crate
+This repository provides the `lin_inf` crate as a rust library. It also provides an executable to search through linear inferences which uses this library which accompanies the paper "[Enumerating Independent Linear Inferences](https://arxiv.org/abs/2111.05209)".
+
 
 ## Running
-This repository provides the `lin_inf` crate as a rust library. It also provides an executable to search through linear inferences which uses this library.
-
 The executable can be run with:
 ```
 cargo run --release
@@ -22,4 +22,4 @@ cargo run --release basis 6 --no-write
 ```
 
 ## Documentation
-Full documentation for the library can be found [here](https://alexarice.github.io/lin_inf/lin_inf/index.html) (best viewed by downloading the repository and opening the file in a browser).
+Full documentation for the library can be found [here](https://alexarice.github.io/lin_inf/lin_inf/index.html).
