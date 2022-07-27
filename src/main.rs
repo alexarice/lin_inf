@@ -643,7 +643,7 @@ fn main() {
 	    } = &opts;
 	    let mut current_rewrites : Vec<Rewrite> = vec![];
 	    for i in 0..=*number_vars {
-		println!("---------------");
+		println!("------------------------------");
 		println!("Running on {} variables", i);
 
 		let mut new_rewrites : Vec<Rewrite> = run_choose_size(i, &current_rewrites, &run_opts).into_iter().enumerate().map(|(n,(a,b))| Rewrite {
@@ -677,7 +677,7 @@ fn main() {
 		_ => ()
 	    }
 	    for r in rewrites {
-		println!("---------------");
+		println!("------------------------------");
 		println!("Inference {}", r.name);
 		let in_form = r.input_graph.cograph_decomp(r.size);
 		let out_form = r.output_graph.cograph_decomp(r.size);
@@ -687,7 +687,7 @@ fn main() {
 		println!("Output formula:");
 		println!("{}", out_form);
 		println!("{} red edges and {} green edges", r.output_graph.edges(r.size), r.output_graph.non_edges(r.size));
-		println!("{} green edges turn red in this inference and {} green edges turn red", non_edge_to_edge(&r.input_graph, &r.output_graph, r.size), edge_to_non_edge(&r.input_graph, &r.output_graph, r.size));
+		println!("{} green edges turn red in this inference and {} red edges turn green", non_edge_to_edge(&r.input_graph, &r.output_graph, r.size), edge_to_non_edge(&r.input_graph, &r.output_graph, r.size));
 		let basis : Vec<_> = (0..r.size).map( | x | parse_rewrites(&Some(get_basis_filename(&RunOpts { p4: true, check: false, no_write: true, quiet: true, dual: false}, x)),false,false)).collect();
 		let mut deduces : Vec<(String, Vec<usize>)>= (0..r.size).map(|_| (0..3)).multi_cartesian_product().map(| v | {
 		    let mut v2 = Vec::new();
@@ -720,8 +720,18 @@ fn main() {
 		}).filter_map(| x | x).collect();
 		deduces.sort();
 		deduces.dedup_by_key(| (x,_) | x.clone());
-		for (x, _) in deduces {
-		    println! ("deduces {}", x);
+		for (x, y) in deduces {
+		    println! ("deduces {} by assignment:", x);
+		    for (n, t) in y.iter().enumerate() {
+			let result = match t {
+			    0 => Some("⊤"),
+			    1 => Some("⊥"),
+			    _ => None
+			};
+			if let Some(s) = result {
+			    println!("  {} -> {}", n, s);
+			}
+		    }
 		}
 	    }
 	}
