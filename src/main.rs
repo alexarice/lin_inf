@@ -655,10 +655,11 @@ fn main() {
 		if ! run_opts.no_write {
 		    let data = new_rewrites.iter().map(| Rewrite { name, size, input_graph, output_graph } | format!("{},{},{},{}", name , size,input_graph,output_graph)).collect::<Vec<_>>().join("\n");
 		    let filename = get_basis_filename(run_opts, i);
-		    let path = PathBuf::from(filename);
+		    let path = PathBuf::from(&filename);
 		    fs::create_dir_all(path.parent().unwrap()).unwrap();
 		    if path.exists() && ! run_opts.check {
-			println!("Found basis file {}, not overwriting", path.file_name().unwrap().to_str().unwrap())
+			println!("Found basis file {}, not overwriting", path.file_name().unwrap().to_str().unwrap());
+			new_rewrites = parse_rewrites(&Some(filename), false, false)
 		    }
 		    else {
 			fs::write(get_basis_filename(run_opts, i), data).unwrap();
