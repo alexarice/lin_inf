@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="indicatif is a library for Rust that helps you build command line interfaces that report progress to users.  It comes with various tools and utilities for formatting anything that indicates progress."><meta name="keywords" content="rust, rustlang, rust-lang, indicatif"><title>indicatif - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../dark.css" disabled><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><script defer src="../main.js"></script>
-    <noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../indicatif/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../indicatif/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"><a href="#">Crate indicatif</a></h2><div class="sidebar-elems"><div class="block"><ul><li class="version">Version 0.16.2</li><li><a id="all-types" href="all.html">All Items</a></li></div></ul><section><div class="block"><ul><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li></ul></div></section><div id="sidebar-vars" data-name="indicatif" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../indicatif/index.html"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
-    <h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">indicatif</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../src/indicatif/lib.rs.html#1-223">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>indicatif is a library for Rust that helps you build command line
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="indicatif is a library for Rust that helps you build command line interfaces that report progress to users.  It comes with various tools and utilities for formatting anything that indicates progress."><meta name="keywords" content="rust, rustlang, rust-lang, indicatif"><title>indicatif - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-93196c7a1c3542a8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-3367e395607fafc1.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="logo-container" href="../indicatif/index.html"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><h2></h2></nav><nav class="sidebar"><a class="logo-container" href="../indicatif/index.html"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><h2 class="location"><a href="#">Crate indicatif</a></h2><div class="sidebar-elems"><ul class="block"><li class="version">Version 0.16.2</li><li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li></ul></section></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Crate <a class="mod" href="#">indicatif</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="srclink" href="../src/indicatif/lib.rs.html#1-223">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>indicatif is a library for Rust that helps you build command line
 interfaces that report progress to users.  It comes with various
 tools and utilities for formatting anything that indicates progress.</p>
 <p>Platform support:</p>
@@ -49,14 +43,14 @@ When you are done, the progress bar can be finished either visibly
 (eg: the progress bar stays on the screen) or cleared (the progress
 bar will be removed).</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">indicatif::ProgressBar</span>;
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>indicatif::ProgressBar;
 
-<span class="kw">let</span> <span class="ident">bar</span> <span class="op">=</span> <span class="ident">ProgressBar::new</span>(<span class="number">1000</span>);
-<span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">1000</span> {
-    <span class="ident">bar</span>.<span class="ident">inc</span>(<span class="number">1</span>);
-    <span class="comment">// ...</span>
-}
-<span class="ident">bar</span>.<span class="ident">finish</span>();</code></pre></div>
+<span class="kw">let </span>bar = ProgressBar::new(<span class="number">1000</span>);
+<span class="kw">for _ in </span><span class="number">0</span>..<span class="number">1000 </span>{
+    bar.inc(<span class="number">1</span>);
+    <span class="comment">// ...
+</span>}
+bar.finish();</code></pre></div>
 <p>General progress bar behaviors:</p>
 <ul>
 <li>if a non terminal is detected the progress bar will be completely
@@ -74,36 +68,37 @@ a new message / retaining the current message.</li>
 <p>Similar to <a href="https://github.com/tqdm/tqdm">tqdm</a>, progress bars can be
 associated with an iterator. For example:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">indicatif::ProgressIterator</span>;
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>indicatif::ProgressIterator;
 
-<span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> (<span class="number">0</span>..<span class="number">1000</span>).<span class="ident">progress</span>() {
-    <span class="comment">// ...</span>
-}</code></pre></div>
+<span class="kw">for _ in </span>(<span class="number">0</span>..<span class="number">1000</span>).progress() {
+    <span class="comment">// ...
+</span>}</code></pre></div>
 <p>See the <a href="trait.ProgressIterator.html"><code>ProgressIterator</code></a> trait for more
 methods to configure the number of elements in the iterator or change
 the progress bar style. Indicatif also has optional support for parallel
 iterators with <a href="https://github.com/rayon-rs/rayon">Rayon</a>. In your
 <code>Cargo.toml</code>, use the “rayon” feature:</p>
 <div class="example-wrap"><pre class="language-toml"><code>[dependencies]
-indicatif = {version = &quot;*&quot;, features = [&quot;rayon&quot;]}</code></pre></div>
+indicatif = {version = &quot;*&quot;, features = [&quot;rayon&quot;]}
+</code></pre></div>
 <p>And then use it like this:</p>
 
-<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="kw">use</span> <span class="ident">indicatif::ParallelProgressIterator</span>;
-<span class="kw">use</span> <span class="ident">rayon::iter</span>::{<span class="ident">ParallelIterator</span>, <span class="ident">IntoParallelRefIterator</span>};
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="kw">use </span>indicatif::ParallelProgressIterator;
+<span class="kw">use </span>rayon::iter::{ParallelIterator, IntoParallelRefIterator};
 
-<span class="kw">let</span> <span class="ident">v</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="number">0</span>..<span class="number">100000</span>).<span class="ident">collect</span>();
-<span class="kw">let</span> <span class="ident">v2</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">par_iter</span>().<span class="ident">progress_count</span>(<span class="ident">v</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>).<span class="ident">collect</span>();
-<span class="macro">assert_eq!</span>(<span class="ident">v2</span>[<span class="number">0</span>], <span class="number">1</span>);</code></pre></div>
+<span class="kw">let </span>v: Vec&lt;<span class="kw">_</span>&gt; = (<span class="number">0</span>..<span class="number">100000</span>).collect();
+<span class="kw">let </span>v2: Vec&lt;<span class="kw">_</span>&gt; = v.par_iter().progress_count(v.len() <span class="kw">as </span>u64).map(|i| i + <span class="number">1</span>).collect();
+<span class="macro">assert_eq!</span>(v2[<span class="number">0</span>], <span class="number">1</span>);</code></pre></div>
 <p>Or if you’d like to customize the progress bar:</p>
 
-<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="kw">use</span> <span class="ident">indicatif</span>::{<span class="ident">ProgressBar</span>, <span class="ident">ParallelProgressIterator</span>};
-<span class="kw">use</span> <span class="ident">rayon::iter</span>::{<span class="ident">ParallelIterator</span>, <span class="ident">IntoParallelRefIterator</span>};
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="kw">use </span>indicatif::{ProgressBar, ParallelProgressIterator};
+<span class="kw">use </span>rayon::iter::{ParallelIterator, IntoParallelRefIterator};
 
-<span class="comment">// Use `ProgressBar::with_style` to change the view</span>
-<span class="kw">let</span> <span class="ident">pb</span> <span class="op">=</span> <span class="ident">ProgressBar::new</span>();
-<span class="kw">let</span> <span class="ident">v</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="number">0</span>..<span class="number">100000</span>).<span class="ident">collect</span>();
-<span class="kw">let</span> <span class="ident">v2</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">par_iter</span>().<span class="ident">progress_with</span>(<span class="ident">pb</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>).<span class="ident">collect</span>();
-<span class="macro">assert_eq!</span>(<span class="ident">v2</span>[<span class="number">0</span>], <span class="number">1</span>);</code></pre></div>
+<span class="comment">// Use `ProgressBar::with_style` to change the view
+</span><span class="kw">let </span>pb = ProgressBar::new();
+<span class="kw">let </span>v: Vec&lt;<span class="kw">_</span>&gt; = (<span class="number">0</span>..<span class="number">100000</span>).collect();
+<span class="kw">let </span>v2: Vec&lt;<span class="kw">_</span>&gt; = v.par_iter().progress_with(pb).map(|i| i + <span class="number">1</span>).collect();
+<span class="macro">assert_eq!</span>(v2[<span class="number">0</span>], <span class="number">1</span>);</code></pre></div>
 <h2 id="templates"><a href="#templates">Templates</a></h2>
 <p>Progress bars can be styled with simple format strings similar to the
 ones in Rust itself.  The format for a placeholder is <code>{key:options}</code>
@@ -112,20 +107,22 @@ where the <code>options</code> part is optional.  If provided the format is this
 WIDTH           an optional width as positive integer
 !               an optional exclamation mark to enable truncation
 .STYLE          an optional dot separated style string
-/STYLE          an optional dot separated alternative style string</code></pre></div>
+/STYLE          an optional dot separated alternative style string
+</code></pre></div>
 <p>For the style component see <a href="https://docs.rs/console/0.7.5/console/struct.Style.html#method.from_dotted_str"><code>Style::from_dotted_str</code></a>
 for more information.  Indicatif uses the <code>console</code> base crate for all
 colorization and formatting options.</p>
 <p>Some examples for templates:</p>
-<div class="example-wrap"><pre class="language-text"><code>[{elapsed_precise}] {bar:40.cyan/blue} {pos:&gt;7}/{len:7} {msg}</code></pre></div>
+<div class="example-wrap"><pre class="language-text"><code>[{elapsed_precise}] {bar:40.cyan/blue} {pos:&gt;7}/{len:7} {msg}
+</code></pre></div>
 <p>This sets a progress bar that is 40 characters wide and has cyan
 as primary style color and blue as alternative style color.
 Alternative styles are currently only used for progress bars.</p>
 <p>Example configuration:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="ident">bar</span>.<span class="ident">set_style</span>(<span class="ident">ProgressStyle::default_bar</span>()
-    .<span class="ident">template</span>(<span class="string">&quot;[{elapsed_precise}] {bar:40.cyan/blue} {pos:&gt;7}/{len:7} {msg}&quot;</span>)
-    .<span class="ident">progress_chars</span>(<span class="string">&quot;##-&quot;</span>));</code></pre></div>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>bar.set_style(ProgressStyle::default_bar()
+    .template(<span class="string">&quot;[{elapsed_precise}] {bar:40.cyan/blue} {pos:&gt;7}/{len:7} {msg}&quot;</span>)
+    .progress_chars(<span class="string">&quot;##-&quot;</span>));</code></pre></div>
 <p>The following keys exist:</p>
 <ul>
 <li><code>bar</code>: renders a progress bar. By default 20 characters wide.  The
@@ -159,31 +156,13 @@ template functionality.  The template can be set by changing a
 <p>There are some formatting wrappers for showing elapsed time and
 file sizes for human users:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">indicatif</span>::{<span class="ident">HumanDuration</span>, <span class="ident">HumanBytes</span>};
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>indicatif::{HumanDuration, HumanBytes};
 
-<span class="macro">assert_eq!</span>(<span class="string">&quot;3.00MiB&quot;</span>, <span class="ident">HumanBytes</span>(<span class="number">3</span><span class="kw-2">*</span><span class="number">1024</span><span class="kw-2">*</span><span class="number">1024</span>).<span class="ident">to_string</span>());
-<span class="macro">assert_eq!</span>(<span class="string">&quot;8 seconds&quot;</span>, <span class="ident">HumanDuration</span>(<span class="ident">Duration::from_secs</span>(<span class="number">8</span>)).<span class="ident">to_string</span>());</code></pre></div>
+<span class="macro">assert_eq!</span>(<span class="string">&quot;3.00MiB&quot;</span>, HumanBytes(<span class="number">3</span><span class="kw-2">*</span><span class="number">1024</span><span class="kw-2">*</span><span class="number">1024</span>).to_string());
+<span class="macro">assert_eq!</span>(<span class="string">&quot;8 seconds&quot;</span>, HumanDuration(Duration::from_secs(<span class="number">8</span>)).to_string());</code></pre></div>
 <h2 id="feature-flags"><a href="#feature-flags">Feature Flags</a></h2>
 <ul>
 <li><code>rayon</code>: adds rayon support</li>
 <li><code>improved_unicode</code>: adds improved unicode support (graphemes, better width calculation)</li>
 </ul>
-</div></details><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2>
-<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.BinaryBytes.html" title="indicatif::BinaryBytes struct">BinaryBytes</a></div><div class="item-right docblock-short"><p>Formats bytes for human readability using ISO/IEC prefixes</p>
-</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.DecimalBytes.html" title="indicatif::DecimalBytes struct">DecimalBytes</a></div><div class="item-right docblock-short"><p>Formats bytes for human readability using SI prefixes</p>
-</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.FormattedDuration.html" title="indicatif::FormattedDuration struct">FormattedDuration</a></div><div class="item-right docblock-short"><p>Wraps an std duration for human basic formatting.</p>
-</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.HumanBytes.html" title="indicatif::HumanBytes struct">HumanBytes</a></div><div class="item-right docblock-short"><p>Formats bytes for human readability</p>
-</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.HumanDuration.html" title="indicatif::HumanDuration struct">HumanDuration</a></div><div class="item-right docblock-short"><p>Wraps an std duration for human readable formatting.</p>
-</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.MultiProgress.html" title="indicatif::MultiProgress struct">MultiProgress</a></div><div class="item-right docblock-short"><p>Manages multiple progress bars from different threads</p>
-</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.ProgressBar.html" title="indicatif::ProgressBar struct">ProgressBar</a></div><div class="item-right docblock-short"><p>A progress bar or spinner</p>
-</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.ProgressBarIter.html" title="indicatif::ProgressBarIter struct">ProgressBarIter</a></div><div class="item-right docblock-short"><p>Wraps an iterator to display its progress.</p>
-</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.ProgressDrawTarget.html" title="indicatif::ProgressDrawTarget struct">ProgressDrawTarget</a></div><div class="item-right docblock-short"><p>Target for draw operations</p>
-</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.ProgressStyle.html" title="indicatif::ProgressStyle struct">ProgressStyle</a></div><div class="item-right docblock-short"><p>Controls the rendering style of progress bars</p>
-</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.WeakProgressBar.html" title="indicatif::WeakProgressBar struct">WeakProgressBar</a></div><div class="item-right docblock-short"><p>A weak reference to a <code>ProgressBar</code>.</p>
-</div></div></div><h2 id="enums" class="small-section-header"><a href="#enums">Enums</a></h2>
-<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.ProgressFinish.html" title="indicatif::ProgressFinish enum">ProgressFinish</a></div><div class="item-right docblock-short"><p>Behavior of a progress bar when it is finished</p>
-</div></div></div><h2 id="traits" class="small-section-header"><a href="#traits">Traits</a></h2>
-<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.ParallelProgressIterator.html" title="indicatif::ParallelProgressIterator trait">ParallelProgressIterator</a></div><div class="item-right docblock-short"><p>Wraps a Rayon parallel iterator.</p>
-</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.ProgressIterator.html" title="indicatif::ProgressIterator trait">ProgressIterator</a></div><div class="item-right docblock-short"><p>Wraps an iterator to display its progress.</p>
-</div></div></div></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="indicatif" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.1 (e092d0b6b 2022-07-16)" ></div>
-</body></html>
+</div></details><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.BinaryBytes.html" title="indicatif::BinaryBytes struct">BinaryBytes</a></div><div class="item-right docblock-short">Formats bytes for human readability using ISO/IEC prefixes</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.DecimalBytes.html" title="indicatif::DecimalBytes struct">DecimalBytes</a></div><div class="item-right docblock-short">Formats bytes for human readability using SI prefixes</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.FormattedDuration.html" title="indicatif::FormattedDuration struct">FormattedDuration</a></div><div class="item-right docblock-short">Wraps an std duration for human basic formatting.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.HumanBytes.html" title="indicatif::HumanBytes struct">HumanBytes</a></div><div class="item-right docblock-short">Formats bytes for human readability</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.HumanDuration.html" title="indicatif::HumanDuration struct">HumanDuration</a></div><div class="item-right docblock-short">Wraps an std duration for human readable formatting.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.MultiProgress.html" title="indicatif::MultiProgress struct">MultiProgress</a></div><div class="item-right docblock-short">Manages multiple progress bars from different threads</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.ProgressBar.html" title="indicatif::ProgressBar struct">ProgressBar</a></div><div class="item-right docblock-short">A progress bar or spinner</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.ProgressBarIter.html" title="indicatif::ProgressBarIter struct">ProgressBarIter</a></div><div class="item-right docblock-short">Wraps an iterator to display its progress.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.ProgressDrawTarget.html" title="indicatif::ProgressDrawTarget struct">ProgressDrawTarget</a></div><div class="item-right docblock-short">Target for draw operations</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.ProgressStyle.html" title="indicatif::ProgressStyle struct">ProgressStyle</a></div><div class="item-right docblock-short">Controls the rendering style of progress bars</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.WeakProgressBar.html" title="indicatif::WeakProgressBar struct">WeakProgressBar</a></div><div class="item-right docblock-short">A weak reference to a <code>ProgressBar</code>.</div></div></div><h2 id="enums" class="small-section-header"><a href="#enums">Enums</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.ProgressFinish.html" title="indicatif::ProgressFinish enum">ProgressFinish</a></div><div class="item-right docblock-short">Behavior of a progress bar when it is finished</div></div></div><h2 id="traits" class="small-section-header"><a href="#traits">Traits</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.ParallelProgressIterator.html" title="indicatif::ParallelProgressIterator trait">ParallelProgressIterator</a></div><div class="item-right docblock-short">Wraps a Rayon parallel iterator.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.ProgressIterator.html" title="indicatif::ProgressIterator trait">ProgressIterator</a></div><div class="item-right docblock-short">Wraps an iterator to display its progress.</div></div></div></section></div></main><div id="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="indicatif" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.2 (9eb3afe9e 2023-03-27)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>

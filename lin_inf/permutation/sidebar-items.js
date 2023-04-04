@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Permutation","Type representing permutations of the nodes in a graph."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Permutation","Type representing permutations of the nodes in a graph."]]};
